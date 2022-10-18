@@ -1,0 +1,151 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Title: {{ listInfo.title }}</h2>
+    
+    <br>
+
+    <div class="row">
+        {% if not listInfo.isActive and user == listInfo.price.user  %}
+            <div class="alert alert-success ml-4" role="alert">
+                <h5>You won this auction!</h5>
+            </div>
+        {% endif %}
+    </div>
+    <div class="card" style="width: 18rem;">
+        <img class="card-img-top" src="{{ listInfo.imageUrl }}" alt="Pictute Not Found">
+        <div class="card-body">
+            <h6>Current Bid: </h6>
+            <p>${{ listInfo.price }}</p>
+            <div>
+                {% if user.is_authenticated %}
+                    <form action="{% url 'addBid' id=listInfo.id %}", method="post">
+                        {% csrf_token %}
+                        {% if listInfo.isActive %}
+                            <input type="number" min="0" class="form-control" name="bid" id="bid" rows="3" placeholder="Add New Bid">
+                        {% else %}
+                            <input type="number" min="0" class="form-control" name="bid" id="bid" rows="3" placeholder="Add New Bid" disabled>
+                        {% endif %}
+                        <div>
+                            <button type="submit" class="btn btn-dark mt-1">Add</button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>            
+        </div>
+    </div>
+    
+    
+    <!-- Bid -->
+    <div>
+        {% if message %}
+            {% if update %}
+                <div class="alert alert-success" role="alert" data-dismiss="alert">
+                    {{ message }}
+                </div>
+            {% else %}
+                <div class="alert alert-warning" role="alert" data-dismiss="alert">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <br>
+
+    <!-- close auction -->
+    <div>
+        {% if updateAuction %}
+            <div class="alert alert-success" role="alert" data-dismiss="alert">
+                {{ messageAuction }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        {% if user.is_authenticated and listInfo.isActive %}
+            {% if isOwner %}
+                <form action="{% url 'closeAuction' id=listInfo.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger ml-4">Close Auction</button>
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <br>
+
+    <!-- WatchList -->
+    <div class="row">
+        {% if user.is_authenticated %}
+            {% if inWatchList %}
+                <form action="{% url 'removeWatchList' id=listInfo.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning ml-4">Remove from Watchlist</button>
+                </form>
+            {% else %}
+            <form action="{% url 'addWatchList' id=listInfo.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success ml-4">Add to Watchlist</button>
+            </form>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <br>
+    <br>
+
+    <!-- Additional Information -->
+    <h3>Additional Information</h3>
+    <table class="table table-bordered">
+        <tr class="table-secondary">
+            <th scope="row">Category</th>
+            <td>{{ listInfo.category }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Start Price</th>
+            <td>${{ listInfo.price }}</td>
+        </tr>
+        <tr class="table-secondary">
+            <th scope="row">Owner</th>
+            <td>{{ listInfo.owner }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Description:</th>
+            <td>{{ listInfo.description }}</td>
+        </tr>
+    </table>
+
+    <br>
+    
+    <!-- Comment -->
+    <div>
+        {% if user.is_authenticated %}
+            <form action="{% url 'comment' id=listInfo.id %}", method="post">
+                {% csrf_token %}
+                <label for="comment" class="form-label"><h2>Comments</h2></label>
+                <textarea class="form-control" name="comment" id="comment" rows="3" placeholder="Enter comment"></textarea>
+                
+                <div>
+                    <button type="submit" class="btn btn-dark mt-1">Post Comment</button>
+                </div>
+            </form>
+            <ul class="list-group">
+                {% for comment in comments %}
+                    <li class="list-group-item">
+                        <h6 class="fw-bold text-primary mb-1">{{ comment.author }}</h6>
+                        <p>{{ comment.text }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <h2>Comment</h2>
+            <p>You must be logged in to comment and view comments!</p>
+        {% endif %}    
+    </div>
+
+    <br>
+
+    
+    
+{% endblock %}
